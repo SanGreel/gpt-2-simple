@@ -142,7 +142,11 @@ def finetune(sess,
              use_memory_saving_gradients=False,
              only_train_transformer_layers=False,
              optimizer='adam',
-             overwrite=False):
+             overwrite=False,
+             val_dataset=None,
+             val_batch_size=2,
+             val_batch_count=40,
+             val_every=0):
     """Finetunes the model on the given dataset.
 
     Adapted from https://github.com/nshepperd/gpt-2/blob/finetuning/train.py.
@@ -195,6 +199,14 @@ def finetune(sess,
     loss = tf.reduce_mean(
         input_tensor=tf.nn.sparse_softmax_cross_entropy_with_logits(
             labels=context[:, 1:], logits=output['logits'][:, :-1]))
+
+    if val_every > 0:
+        val_context = tf.placeholder(tf.int32, [val_batch_size, None])
+        val_output = model.model(hparams=hparams, X=val_context)
+        val_loss = tf.reduce_mean(
+            tf.nn.sparse_softmax_cross_entropy_with_logits(
+                labels=val_context[:, 1:], logits=val_output['logits'][:, :-1]))
+        val_loss_summary = tf.summary.scalar('val_loss', val_loss)
 
     tf_sample = sample.sample_sequence(
         hparams=hparams,
@@ -255,8 +267,22 @@ def finetune(sess,
     print('Loading dataset...')
     chunks = load_dataset(enc, dataset, combine)
     data_sampler = Sampler(chunks)
+
+    if val_every > 0:
+        if val_dataset:
+            val_chunks = load_dataset(enc, val_dataset, combine)
+        else:
+            val_chunks = chunks
+
     print('dataset has', data_sampler.total_size, 'tokens')
     print('Training...')
+
+    if val_every > 0:
+        # Sample from validation set once with fixed seed to make
+        # it deterministic during training as well as across runs.
+        val_data_sampler = Sampler(val_chunks, seed=1)
+        val_batches = [[val_data_sampler.sample(1024) for _ in range(val_batch_size)]
+                       for _ in range(val_batch_count)]
 
     counter = 1
     counter_path = os.path.join(checkpoint_path, 'counter')
@@ -301,6 +327,22 @@ def finetune(sess,
                              'samples-{}').format(counter), 'w') as fp:
             fp.write('\n'.join(all_text))
 
+    def validation():
+        print('Calculating validation loss...')
+        losses = []
+        for batch in tqdm.tqdm(val_batches):
+            losses.append(sess.run(val_loss, feed_dict={val_context: batch}))
+        v_val_loss = np.mean(losses)
+        v_summary = sess.run(val_loss_summary, feed_dict={val_loss: v_val_loss})
+        summary_log.add_summary(v_summary, counter)
+        summary_log.flush()
+        print(
+            '[{counter} | {time:2.2f}] validation loss = {loss:2.2f}'
+            .format(
+                counter=counter,
+                time=time.time() - start_time,
+                loss=v_val_loss))
+
     def sample_batch():
         return [data_sampler.sample(1024) for _ in range(batch_size)]
 
@@ -325,6 +367,8 @@ def finetune(sess,
                 save()
             if (counter - 1) % sample_every == 0 and counter > 1:
                 generate_samples()
+            if val_every > 0 and (counter % val_every == 0 or counter == 1):
+                validation()
 
             if accumulate_gradients > 1:
                 sess.run(opt_reset)
