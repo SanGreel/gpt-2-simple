@@ -201,8 +201,8 @@ def finetune(sess,
             labels=context[:, 1:], logits=output['logits'][:, :-1]))
 
     if val_every > 0:
-        val_context = tf.placeholder(tf.int32, [val_batch_size, None])
-        val_output = model.model(hparams=hparams, X=val_context)
+        val_context = tf.compat.v1.placeholder(tf.int32, [val_batch_size, None])
+        val_output = model.model(hparams=hparams, X=val_context, gpus=gpus, reuse=True)
         val_loss = tf.reduce_mean(
             tf.nn.sparse_softmax_cross_entropy_with_logits(
                 labels=val_context[:, 1:], logits=val_output['logits'][:, :-1]))
@@ -280,7 +280,7 @@ def finetune(sess,
     if val_every > 0:
         # Sample from validation set once with fixed seed to make
         # it deterministic during training as well as across runs.
-        val_data_sampler = Sampler(val_chunks, seed=1)
+        val_data_sampler = Sampler(val_chunks)
         val_batches = [[val_data_sampler.sample(1024) for _ in range(val_batch_size)]
                        for _ in range(val_batch_count)]
 
@@ -330,7 +330,7 @@ def finetune(sess,
     def validation():
         print('Calculating validation loss...')
         losses = []
-        for batch in tqdm.tqdm(val_batches):
+        for batch in tqdm(val_batches):
             losses.append(sess.run(val_loss, feed_dict={val_context: batch}))
         v_val_loss = np.mean(losses)
         v_summary = sess.run(val_loss_summary, feed_dict={val_loss: v_val_loss})
