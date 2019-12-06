@@ -277,6 +277,9 @@ def finetune(sess,
     print('dataset has', data_sampler.total_size, 'tokens')
     print('Training...')
 
+    # big number = infinity
+    val_score = 10000000
+
     if val_every > 0:
         # Sample from validation set once with fixed seed to make
         # it deterministic during training as well as across runs.
@@ -342,6 +345,7 @@ def finetune(sess,
                 counter=counter,
                 time=time.time() - start_time,
                 loss=v_val_loss))
+        return v_val_loss
 
     def sample_batch():
         return [data_sampler.sample(1024) for _ in range(batch_size)]
@@ -363,14 +367,27 @@ def finetune(sess,
             if steps > 0 and counter == (counter_base + steps):
                 save()
                 return
-            #TODO: Add early stopping here to avoid model overfitting
-
             if (counter - 1) % save_every == 0 and counter > 1:
                 save()
             if (counter - 1) % sample_every == 0 and counter > 1:
                 generate_samples()
             if val_every > 0 and (counter % val_every == 0 or counter == 1):
-                validation()
+                val_score_new = validation()
+
+                # Early stopping
+                if val_score_new>val_score:
+                    print('Early stopping')
+                    print(
+                        '[{counter} | {time:2.2f}] prev_val_loss={val_score:2.4f} val_score_new={val_score_new:2.4f} loss={avg:2.4f} avg={avg:2.4f}'
+                            .format(
+                            counter=counter,
+                            time=time.time() - start_time,
+                            val_score=val_score,
+                            val_score_new=val_score_new,
+                            loss=v_loss,
+                            avg=avg_loss[0] / avg_loss[1]))
+                    save()
+                    return
 
             if accumulate_gradients > 1:
                 sess.run(opt_reset)
