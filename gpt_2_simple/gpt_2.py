@@ -375,15 +375,17 @@ def finetune(sess,
                 val_score_new = validation()
 
                 # Early stopping
-                if val_score_new<val_score:
+                if val_score_new<val_score and val_score!=10000000:
                     print('Early stopping')
                     print(
-                        '[{counter} | {time:2.2f}] prev_val_loss={val_score:2.4f} val_score_new={val_score_new:2.4f}'
+                        '[{counter} | {time:2.2f}] prev_val_loss={val_score:2.4f} val_score_new={val_score_new:2.4f} loss={avg:2.4f} avg={avg:2.4f}'
                             .format(
                             counter=counter,
                             time=time.time() - start_time,
                             val_score=val_score,
-                            val_score_new=val_score_new))
+                            val_score_new=val_score_new,
+                            loss=v_loss,
+                            avg=avg_loss[0] / avg_loss[1]))
                     save()
                     return
 
