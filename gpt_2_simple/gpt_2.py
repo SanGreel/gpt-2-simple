@@ -296,7 +296,7 @@ def finetune(sess,
             counter = int(fp.read()) + 1
     counter_base = counter
 
-    def save():
+    def save(run_name='',save_to_gdrive=False):
         maketree(checkpoint_path)
         print(
             'Saving',
@@ -308,6 +308,9 @@ def finetune(sess,
             global_step=counter-1)
         with open(counter_path, 'w') as fp:
             fp.write(str(counter-1) + '\n')
+
+        if save_to_gdrive:
+            copy_checkpoint_to_gdrive(run_name=run_name)
 
     def generate_samples():
         context_tokens = data_sampler.sample(1)
@@ -365,10 +368,10 @@ def finetune(sess,
     try:
         while True:
             if steps > 0 and counter == (counter_base + steps):
-                save()
+                save(run_name=run_name,save_to_gdrive=True)
                 return
             if (counter - 1) % save_every == 0 and counter > 1:
-                save()
+                save(run_name=run_name,save_to_gdrive=True)
             if (counter - 1) % sample_every == 0 and counter > 1:
                 generate_samples()
             if val_every > 0 and (counter % val_every == 0 or counter == 1):
@@ -389,7 +392,7 @@ def finetune(sess,
                             time=time.time() - start_time,
                             val_score=val_score,
                             val_score_new=val_score_new))
-                    save()
+                    save(run_name=run_name,save_to_gdrive=True)
                     return
 
             if accumulate_gradients > 1:
