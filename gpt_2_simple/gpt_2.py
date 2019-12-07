@@ -372,10 +372,15 @@ def finetune(sess,
             if (counter - 1) % sample_every == 0 and counter > 1:
                 generate_samples()
             if val_every > 0 and (counter % val_every == 0 or counter == 1):
-                val_score_new = validation()
+                if counter == 1:
+                    val_score = validation()
+                    val_score_new = 0
+                else:
+                    val_score_new = validation()
 
                 # Early stopping
-                if val_score_new<val_score and val_score!=10000000:
+                if val_score_new<val_score and counter>1:
+
                     print('Early stopping')
                     print(
                         '[{counter} | {time:2.2f}] prev_val_loss={val_score:2.4f} val_score_new={val_score_new:2.4f} loss={avg:2.4f} avg={avg:2.4f}'
