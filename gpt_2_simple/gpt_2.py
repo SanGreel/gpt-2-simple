@@ -379,7 +379,7 @@ def finetune(sess,
                     val_score_new = validation()
 
                 # Early stopping
-                if val_score_new<val_score and counter>1:
+                if val_score_new>val_score and counter>1:
 
                     print('Early stopping')
                     print(
