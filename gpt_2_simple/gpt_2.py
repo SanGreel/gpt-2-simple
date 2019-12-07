@@ -383,7 +383,7 @@ def finetune(sess,
 
                     print('Early stopping')
                     print(
-                        '[{counter} | {time:2.2f}] prev_val_loss={val_score:2.4f} val_score_new={val_score_new:2.4f} loss={avg:2.4f}'
+                        '[{counter} | {time:2.2f}] prev_val_loss={val_score:2.4f} val_score_new={val_score_new:2.4f}'
                             .format(
                             counter=counter,
                             time=time.time() - start_time,
