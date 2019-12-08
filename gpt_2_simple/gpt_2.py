@@ -146,7 +146,8 @@ def finetune(sess,
              val_dataset=None,
              val_batch_size=2,
              val_batch_count=40,
-             val_every=0):
+             val_every=0,
+             val_error_acceptable=0.0008):
     """Finetunes the model on the given dataset.
 
     Adapted from https://github.com/nshepperd/gpt-2/blob/finetuning/train.py.
@@ -390,7 +391,7 @@ def finetune(sess,
                         val_score_new=val_score_new))
 
                 # Early stopping
-                if val_score_new>val_score and counter>1:
+                if (val_score_new)>(val_score+val_error_acceptable) and counter>1:
                     print('Early stopping')
 
                     save(run_name=run_name,save_to_gdrive=True)
