@@ -381,19 +381,21 @@ def finetune(sess,
                 else:
                     val_score_new = validation()
 
+                print(
+                    '[{counter} | {time:2.2f}] prev_val_loss={val_score:2.4f} new_val_loss={val_score_new:2.4f}'
+                        .format(
+                        counter=counter,
+                        time=time.time() - start_time,
+                        val_score=val_score,
+                        val_score_new=val_score_new))
+
                 # Early stopping
                 if val_score_new>val_score and counter>1:
-
                     print('Early stopping')
-                    print(
-                        '[{counter} | {time:2.2f}] prev_val_loss={val_score:2.4f} val_score_new={val_score_new:2.4f}'
-                            .format(
-                            counter=counter,
-                            time=time.time() - start_time,
-                            val_score=val_score,
-                            val_score_new=val_score_new))
+
                     save(run_name=run_name,save_to_gdrive=True)
                     return
+                val_score = val_score_new
 
             if accumulate_gradients > 1:
                 sess.run(opt_reset)
