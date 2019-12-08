@@ -279,6 +279,7 @@ def finetune(sess,
 
     # big number = infinity
     val_score = 10000000
+    val_score_new = 0
 
     if val_every > 0:
         # Sample from validation set once with fixed seed to make
@@ -377,7 +378,6 @@ def finetune(sess,
             if val_every > 0 and (counter % val_every == 0 or counter == 1):
                 if counter == 1:
                     val_score = validation()
-                    val_score_new = 0
                 else:
                     val_score_new = validation()
 
