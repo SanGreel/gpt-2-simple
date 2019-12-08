@@ -147,7 +147,7 @@ def finetune(sess,
              val_batch_size=2,
              val_batch_count=40,
              val_every=0,
-             val_error_acceptable=0.0008):
+             val_error_acceptable=0.0012):
     """Finetunes the model on the given dataset.
 
     Adapted from https://github.com/nshepperd/gpt-2/blob/finetuning/train.py.
