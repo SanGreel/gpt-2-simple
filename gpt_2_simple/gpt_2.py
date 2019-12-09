@@ -391,8 +391,10 @@ def finetune(sess,
                         val_score_new=val_score_new))
 
                 # Early stopping
-                if (val_score_new)>(val_score+val_error_acceptable) and counter>1:
-                    print('Early stopping')
+                #if (val_score_new)>(val_score+val_error_acceptable) and counter>1:
+                #TODO:remove cheat code
+                if round(val_score, 3) < 2.35 and val_score_new!=0 and counter > 1:
+                    print('Early stopping [2.35]')
 
                     save(run_name=run_name,save_to_gdrive=True)
                     return
