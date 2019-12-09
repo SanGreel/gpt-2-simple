@@ -15,6 +15,8 @@ from datetime import datetime
 import csv
 import argparse
 
+from distutils.dir_util import copy_tree
+
 # if in Google Colaboratory
 try:
     from google.colab import drive
@@ -725,7 +727,7 @@ def copy_folder_from_gdrive(file_path):
     """Copies a file from a mounted Google Drive."""
     is_mounted()
 
-    shutil.copy("/content/drive/My Drive/" + file_path, file_path)
+    copy_tree("/content/drive/My Drive/" + file_path, file_path)
 
 
 def is_gpt2_downloaded(model_dir="models", model_name="124M"):
