@@ -6,6 +6,9 @@ shakespeare.txt
 dist/
 gpt_2_simple.egg-info/
 build/
+Icon[\r]
+Icon\r\r
+"Icon\r"
 
 data/*
 tmp/*
@@ -248,3 +251,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .idea/
+Icon[]
